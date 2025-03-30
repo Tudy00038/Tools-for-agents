@@ -1,0 +1,10 @@
+langchain
+llama-cpp-python
+ollama
+chromadb
+pypdf
+sentence-transformers
+requests
+langchain_nomic
+langchain_text_splitters
+faiss-cpu

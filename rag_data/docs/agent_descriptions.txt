@@ -2,15 +2,10 @@ Agent Name: GitHub README Summarizer
 Capabilities: Specialized in fetching and summarizing README.md files from GitHub repositories.
 Trigger Conditions: User explicitly mentions GitHub URLs, asks about repository details, or requests summaries of READMEs.
 
-Agent Name: Code Documentation Generator
-Capabilities: Generates structured documentation for a given code snippet.
-Trigger Conditions: When a user provides code and requests documentation.
-
-
 Agent Name: Search Web Agent
-Capabilities: It searches the web for answers to a given search input. It gives an answear to the user with the response
-Trigger Conditions: When a user askes a question about a topic.
+Capabilities: Searches the web for answers to general questions and translates text between languages.
+Trigger Conditions: When a user asks general information questions or explicitly requests translation between languages.
 
 Agent Name: Code Generator Agent
 Capabilities: Can generate code in Python from user input and can execute it if needed.
-Trigger Conditions: When a user wants to know a simple algorithm or wants to know how to write a function in Python.
+Trigger Conditions: When a user requests a simple algorithm or asks how to write a function in Python.

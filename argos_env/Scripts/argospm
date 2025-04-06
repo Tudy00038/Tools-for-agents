@@ -1,0 +1,5 @@
+#!D:\Licenta\Tools for agents\argos_env\Scripts\python.exe
+
+from argostranslate import argospm
+
+argospm.main()

@@ -29,29 +29,27 @@ retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 prompt_template = PromptTemplate(
     input_variables=["context", "question"],
     template="""
-    You are an orchestrator agent responsible for delegating tasks to specialized agents based on the user's request.
+ You are an orchestrator agent responsible for delegating tasks to specialized agents.
 
-Context: {context}
-User Request: {question}
+    Context: {context}
+    User Request: {question}
 
-Available agents:
-1. GitHub README Summarizer - handles GitHub repository summaries (requires URL).
-2. Search Web Agent - handles general information queries.
-3. Code Generator Agent - handles code generation tasks.
+    Available agents:
+    1. GitHub README Summarizer - handles GitHub repository summaries (requires URL).
+    2. Search Web Agent - handles general information queries and translations.
+    3. Code Generator Agent - handles code generation tasks.
 
-Examples:
-- User request: "Summarize github.com/example/repo" → Agent Name: GitHub README Summarizer
-- User request: "Explain photosynthesis" → Agent Name: Search Web Agent
-- User request: "Create a python function for Fibonacci sequence" → Agent Name: Code Generator Agent
+    Examples:
+    - "Summarize github.com/example/repo" → Agent Name: GitHub README Summarizer
+    - "Explain photosynthesis" → Agent Name: Search Web Agent
+    - "Translate 'Hello' from English to Spanish" → Agent Name: Search Web Agent
+    - "Create Python function for Fibonacci" → Agent Name: Code Generator Agent
 
-Carefully analyze the user request and strictly answer with the following format without additional explanations:
+    Carefully analyze the user request and strictly answer with:
+    Agent Name: <Agent_Name>
 
-Agent Name: <Agent_Name>
-
-If the task is unclear, strictly answer:
-
-Agent Name: Ambiguous
-Answer:
+    If unclear, strictly answer:
+    Agent Name: Ambiguous
     """,
 )
 
@@ -79,11 +77,13 @@ def orchestrate(user_input):
 
 if __name__ == "__main__":
     user_request = (
-        # "Summarize the README for https://github.com/lightningdevkit/rust-lightning"
-        "Who is Messi?"
-        # "Create a Python function that calculates the factorial sequence of a number. Make the function recursive."
+        "Summarize the README for https://github.com/Tudy00038/marketplace_dApp"
+        # "Who is Messi?"
+        # "What is the capital of France?"
+        # "Create a Python function that calculates the Fibonacci sequence. Make the function recursive."
         # "Summarize the repo."
         # "Python code to search the web."
+        # "Translate 'Hello World' from English to Spanish."
     )
     response = orchestrate(user_request)
     print(response)

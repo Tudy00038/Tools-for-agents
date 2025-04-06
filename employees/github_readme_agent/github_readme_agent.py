@@ -66,7 +66,8 @@ github_summary_tool = Tool(
 # Initialize LLM agent (employee)
 from llm_config import get_llm
 
-llm = get_llm()
+llm = get_llm("github_readme")
+
 prompt = PromptTemplate.from_template(
     """
    You are an expert technical writer tasked with summarizing GitHub repositories.

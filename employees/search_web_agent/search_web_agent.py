@@ -6,7 +6,8 @@ from .argos_translate_tool import ArgosTranslateTool
 
 from llm_config import get_llm
 
-llm = get_llm()
+llm = get_llm("search_web")
+
 
 # Existing DuckDuckGo tool
 search_tool = DuckDuckGoSearchResults(name="web_search")

@@ -108,19 +108,32 @@ def agent_response(observation, repo_url):
 
 
 # Modified execute_employee_task to pass repo_url to agent_response
+def save_summary_to_file(repo_url, summary_text):
+    # Extract repo name
+    path_parts = urlparse(repo_url).path.strip("/").split("/")
+    repo_name = path_parts[-1] if len(path_parts) >= 2 else "unknown_repo"
+
+    # Ensure summaries directory exists
+    os.makedirs("summaries", exist_ok=True)
+
+    # Save to file
+    filename = f"summaries/{repo_name}_summary.txt"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(summary_text)
+
+    return filename
+
+
 def execute_employee_task(repo_url):
     prompt = f"Summarize the GitHub repository: {repo_url}"
-    # Run the agent and get its raw response
     raw_response = agent.run(prompt)
-    # Process the agent's response with agent_response, passing repo_url
     formatted_response = agent_response(raw_response, repo_url)
-    # Extract the final summary if the action indicates completion
+
     if "Provide the final summary" in formatted_response:
-        # Extract the Action Input (the summary) from the formatted response
         summary = formatted_response.split("Action Input:")[1].strip()
-        return summary
+        filepath = save_summary_to_file(repo_url, summary)
+        return f"Summary saved to '{filepath}'\n\n{summary}"
     else:
-        # Fallback to raw response if no summary is detected
         return raw_response
 
 

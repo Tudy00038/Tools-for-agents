@@ -4,7 +4,9 @@ from langchain.agents import initialize_agent, AgentType
 from langchain.prompts import PromptTemplate
 from .argos_translate_tool import ArgosTranslateTool
 
-llm = OllamaLLM(model="llama3.2:latest")
+from llm_config import get_llm
+
+llm = get_llm()
 
 # Existing DuckDuckGo tool
 search_tool = DuckDuckGoSearchResults(name="web_search")

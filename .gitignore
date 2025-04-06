@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 .idea/
 .vscode/
+.argos_env/
+.summaries/

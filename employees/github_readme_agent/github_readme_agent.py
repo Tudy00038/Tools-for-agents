@@ -9,6 +9,9 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_ollama import OllamaLLM
 from langchain.chains.summarize import load_summarize_chain
 from langchain.docstore.document import Document
+from langchain.prompts import PromptTemplate
+import os
+from urllib.parse import urlparse
 
 
 def fetch_readme_content(repo_url):
@@ -61,8 +64,30 @@ github_summary_tool = Tool(
 )
 
 # Initialize LLM agent (employee)
-llm = OllamaLLM(model="llama3.2:latest")
+from llm_config import get_llm
 
+llm = get_llm()
+prompt = PromptTemplate.from_template(
+    """
+   You are an expert technical writer tasked with summarizing GitHub repositories.
+
+Your goal is to provide a clear, structured summary of a repository’s README file. 
+Split the output into key sections: Overview, Features, Installation, Usage, and Notes.
+
+Even if the README is incomplete, deduce as much context as possible.
+
+Example format:
+---
+**Overview**: ...
+**Features**: ...
+**Installation**: ...
+**Usage**: ...
+**Notes**: ...
+
+Focus on clarity. Avoid redundant phrases. Keep it under 300 words if possible.
+
+    """
+)
 agent = initialize_agent(
     tools=[github_summary_tool],
     llm=llm,
@@ -114,14 +139,17 @@ def save_summary_to_file(repo_url, summary_text):
     repo_name = path_parts[-1] if len(path_parts) >= 2 else "unknown_repo"
 
     # Ensure summaries directory exists
-    os.makedirs("summaries", exist_ok=True)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    summaries_dir = os.path.join(script_dir, "summaries")
+    os.makedirs(summaries_dir, exist_ok=True)
 
     # Save to file
-    filename = f"summaries/{repo_name}_summary.txt"
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(summary_text)
-
-    return filename
+    filename = os.path.join(summaries_dir, f"{repo_name}_summary.txt")
+    try:
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(summary_text)
+    except Exception as e:
+        print(f"Error writing file: {e}")
 
 
 def execute_employee_task(repo_url):

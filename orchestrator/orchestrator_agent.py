@@ -18,7 +18,7 @@ from langchain_ollama import OllamaLLM
 
 from llm_config import get_llm
 
-llm = get_llm()
+llm = get_llm("orchestrator")
 
 
 # Load vector store

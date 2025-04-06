@@ -14,8 +14,8 @@ os.environ["RIZA_API_KEY"] = (
 
 from llm_config import get_llm
 
+llm = get_llm("code_generator")
 
-llm = get_llm()
 
 # Define the Riza tool for executing Python code
 tools = [ExecPython()]

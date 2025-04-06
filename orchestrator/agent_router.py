@@ -5,9 +5,6 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import re
 from employees.github_readme_agent.github_readme_agent import execute_employee_task
-from employees.document_generator.employees.doc_writer_agent.doc_writer_agent import (
-    execute_documentation_task,
-)
 from employees.search_web_agent.search_web_agent import execute_web_search
 from employees.code_generator.code_generator_agent import run_agent
 
@@ -20,12 +17,6 @@ def route_task(agent_name, user_request):
                 "Clarification needed: Please provide a valid GitHub URL to summarize."
             )
         return execute_employee_task(repo_url)
-
-    elif agent_name == "Code Documentation Generator":
-        code_snippet = extract_code_from_input(user_request)
-        if not code_snippet:
-            return "Clarification needed: Please provide a code snippet."
-        return execute_documentation_task(code_snippet)
 
     elif agent_name == "Search Web Agent":
         return execute_web_search(user_request)

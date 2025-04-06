@@ -1,0 +1,1 @@
+The summary of the GitHub repository https://github.com/Tudy00038/marketplace_dApp suggests that to set up an AlgoKit project, one needs to create a new workspace using `algokit generate devcontainer`, followed by setting up the workspace using `algokit init`. This indicates that the AlgoKit project uses GitHub Codespaces for development.

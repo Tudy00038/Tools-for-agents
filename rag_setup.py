@@ -13,4 +13,4 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 vectorstore = Chroma.from_documents(
     texts, embeddings, persist_directory="rag_data/embeddings"
 )
-vectorstore.persist()
+# vectorstore.persist()

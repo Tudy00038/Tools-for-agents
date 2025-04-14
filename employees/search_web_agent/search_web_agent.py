@@ -4,9 +4,7 @@ from langchain.agents import initialize_agent, AgentType
 from langchain.prompts import PromptTemplate
 from .argos_translate_tool import ArgosTranslateTool
 
-from llm_config import get_llm
-
-llm = get_llm("search_web")
+from llm_config import OllamaLLM
 
 
 # Existing DuckDuckGo tool
@@ -52,17 +50,19 @@ prompt = PromptTemplate.from_template(
     """
 )
 
-agent = initialize_agent(
-    tools=tools,
-    llm=llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    verbose=True,
-    prompt=prompt,
-    handle_parsing_errors=True,
-    max_iterations=5,
-)
 
+def execute_web_search(question, model_name):
+    llm = OllamaLLM(model=model_name)
 
-def execute_web_search(question):
+    # 2) Initialize the agent with the dynamic llm
+    agent = initialize_agent(
+        tools=tools,
+        llm=llm,
+        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+        verbose=True,
+        prompt=prompt,
+        handle_parsing_errors=True,
+        max_iterations=5,
+    )
     result = agent.invoke(question)
     return result

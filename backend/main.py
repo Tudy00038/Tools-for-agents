@@ -32,4 +32,7 @@ class PromptRequest(BaseModel):
 @app.post("/api/query")
 async def query_agent(request: PromptRequest):
     response = orchestrate(request.prompt, request.selected_llms)
-    return response
+    return {
+        "agent": "Orchestrator",  # or whichever agent name you want
+        "result": response,
+    }

@@ -70,8 +70,7 @@ llm = get_llm("github_readme")
 
 prompt = PromptTemplate.from_template(
     """
-   You are an expert technical writer tasked with summarizing GitHub repositories.
-
+   You are an expert technical writer tasked with summarizing README.md GitHub files.
 Your goal is to provide a clear, structured summary of a repository’s README file. 
 Split the output into key sections: Overview, Features, Installation, Usage, and Notes.
 

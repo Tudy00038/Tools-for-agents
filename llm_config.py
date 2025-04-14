@@ -6,7 +6,7 @@ from langchain_ollama import OllamaLLM
 AGENT_MODEL_MAP = {
     "orchestrator": "gemma3:latest",
     "code_generator": "qwen2.5-coder:3b",  # updated model name from qwen2.5
-    "search_web": "llama3.2:latest",
+    "search_web": "gemma3:latest",
     "github_readme": "gemma3:latest",
     # add more agents if needed
 }

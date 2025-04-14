@@ -1,23 +1,33 @@
-from langchain.agents import Tool, initialize_agent, AgentType
-from langchain_ollama import OllamaLLM
+############################
+# github_readme_agent.py
+############################
 
-from langchain_text_splitters import CharacterTextSplitter
+import os
+import re
 import requests
-from langchain_nomic import NomicEmbeddings
-from langchain_community.vectorstores import FAISS
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from urllib.parse import urlparse
+
+# LangChain / Ollama / Tools imports
+from langchain.agents import Tool, initialize_agent, AgentType
 from langchain_ollama import OllamaLLM
 from langchain.chains.summarize import load_summarize_chain
 from langchain.docstore.document import Document
 from langchain.prompts import PromptTemplate
-import os
-from urllib.parse import urlparse
+
+# The following two classes are from your environment; adapt imports if needed
+from langchain_text_splitters import CharacterTextSplitter
+from langchain_nomic import NomicEmbeddings
+from langchain_community.vectorstores import FAISS
+
+############################
+# 1) HELPER FUNCTIONS
+############################
 
 
-def fetch_readme_content(repo_url):
+def fetch_readme_content(repo_url: str) -> str:
+    """Fetches README.md content from either main or master branch."""
     if repo_url.endswith("/"):
         repo_url = repo_url[:-1]
-
     branches = ["main", "master"]
     for branch in branches:
         raw_url = (
@@ -27,145 +37,141 @@ def fetch_readme_content(repo_url):
         response = requests.get(raw_url)
         if response.status_code == 200:
             return response.text
-
     raise FileNotFoundError(
         f"README.md not found in branches 'main' or 'master' at {repo_url}"
     )
 
 
-def chunk_readme_content(readme_content):
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
-
+def chunk_readme_content(readme_content: str) -> list[str]:
+    """Splits the README content into manageable chunks for summarization."""
+    # Using CharacterTextSplitter or RecursiveCharacterTextSplitter
     splitter = CharacterTextSplitter(chunk_size=800, chunk_overlap=100)
     return splitter.split_text(readme_content)
 
 
-def summarize_readme(repo_url):
+############################
+# 2) CORE SUMMARIZE FUNCTION
+############################
+
+
+def summarize_readme(repo_url: str, model_name: str) -> str:
+    """
+    Summarizes the README of the given repo using the dynamic model specified by model_name.
+    """
+    # 1) Create the LLM
+    llm = OllamaLLM(model=model_name)
+
+    # 2) Fetch & chunk the README
     readme_content = fetch_readme_content(repo_url)
     chunks = chunk_readme_content(readme_content)
     documents = [Document(page_content=chunk) for chunk in chunks]
-    llm = OllamaLLM(model="llama3.2:latest")
+
+    # 3) Summarize with a map_reduce chain
     summary_chain = load_summarize_chain(llm, chain_type="map_reduce", verbose=True)
     summary = summary_chain.invoke(documents)
+
     return summary["output_text"]
 
 
-# Usage
-repo_url = "https://github.com/catamaican/angular-scroll"
-summary = summarize_readme(repo_url)
-print(summary)
+############################
+# 3) TOOL WRAPPER FUNCTION
+############################
 
 
-# Define the tool
+def summarize_readme_single_input(input_str: str) -> str:
+    """
+    A single-argument wrapper for the ReAct agent.
+    Expects input_str to look like:
+      repo_url='https://github.com/catamaican/gamification' model_name='gemma3:latest'
+
+    We'll parse out the repo_url and model_name, then call summarize_readme(repo_url, model_name).
+    """
+    # Use regex to find each argument
+    url_match = re.search(r"repo_url=['\"]([^'\"]+)['\"]", input_str)
+    model_match = re.search(r"model_name=['\"]([^'\"]+)['\"]", input_str)
+
+    if not url_match:
+        return "ERROR: No repo_url found in input_str."
+    if not model_match:
+        return "ERROR: No model_name found in input_str."
+
+    repo_url = url_match.group(1)
+    model_name = model_match.group(1)
+
+    # Now call the original 2-argument function
+    return summarize_readme(repo_url, model_name)
+
+
+############################
+# 4) DEFINE THE TOOL (ReAct style)
+############################
 github_summary_tool = Tool(
     name="GitHub README Summarizer",
-    func=summarize_readme,
-    description="Summarizes the README.md file from a provided GitHub repository URL.",
-)
-
-# Initialize LLM agent (employee)
-from llm_config import get_llm
-
-llm = get_llm("github_readme")
-
-prompt = PromptTemplate.from_template(
-    """
-   You are an expert technical writer tasked with summarizing README.md GitHub files.
-Your goal is to provide a clear, structured summary of a repository’s README file. 
-Split the output into key sections: Overview, Features, Installation, Usage, and Notes.
-
-Even if the README is incomplete, deduce as much context as possible.
-
-Example format:
----
-**Overview**: ...
-**Features**: ...
-**Installation**: ...
-**Usage**: ...
-**Notes**: ...
-
-Focus on clarity. Avoid redundant phrases. Keep it under 300 words if possible.
-
-    """
-)
-agent = initialize_agent(
-    tools=[github_summary_tool],
-    llm=llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    verbose=True,
-    handle_parsing_errors=True,  # Enables retrying if output parsing fails
+    func=summarize_readme_single_input,
+    description="Summarizes the README.md file. Provide input like: repo_url='...' model_name='...'",
 )
 
 
-# Modified agent_response function to accept repo_url
-def agent_response(observation, repo_url):
-    """
-    Process the observation and return a correctly formatted response.
-
-    Args:
-        observation (str): The input or feedback the agent receives.
-        repo_url (str): The GitHub repository URL to summarize.
-
-    Returns:
-        str: A response formatted with 'Thought:', 'Action:', and 'Action Input:'.
-    """
-    # Case 1: Handle invalid format feedback
-    if "Invalid Format" in observation:
-        thought = "My previous response was incorrectly formatted. I’ll ensure it includes 'Thought:', 'Action:', and 'Action Input:'."
-        action = "Retry with the correct format."
-        action_input = "N/A"
-
-    # Case 2: Detect task completion (e.g., summary received)
-    elif "summary" in observation.lower():  # Fixed syntax error
-        thought = "I’ve received the summary from the tool. The task is complete."
-        action = "Provide the final summary to the user."
-        action_input = observation  # Pass the summary as the final output
-
-    # Case 3: Default case (initiate tool usage with the provided repo_url)
-    else:
-        thought = "I need to summarize the GitHub repository using the tool."
-        action = "Use GitHub README Summarizer"
-        action_input = repo_url  # Use the provided repo_url instead of hardcoded URL
-
-    # Format the response with required labels
-    response = f"Thought: {thought}\nAction: {action}\nAction Input: {action_input}"
-    return response
-
-
-# Modified execute_employee_task to pass repo_url to agent_response
-def save_summary_to_file(repo_url, summary_text):
-    # Extract repo name
+############################
+# 5) SAVE SUMMARY TO FILE
+############################
+def save_summary_to_file(repo_url: str, summary_text: str) -> str:
+    """Saves the summary text to a .txt file named after the repository."""
     path_parts = urlparse(repo_url).path.strip("/").split("/")
     repo_name = path_parts[-1] if len(path_parts) >= 2 else "unknown_repo"
 
-    # Ensure summaries directory exists
     script_dir = os.path.dirname(os.path.abspath(__file__))
     summaries_dir = os.path.join(script_dir, "summaries")
     os.makedirs(summaries_dir, exist_ok=True)
 
-    # Save to file
     filename = os.path.join(summaries_dir, f"{repo_name}_summary.txt")
     try:
         with open(filename, "w", encoding="utf-8") as f:
             f.write(summary_text)
+        return filename
     except Exception as e:
         print(f"Error writing file: {e}")
+        return "Error saving file."
 
 
-def execute_employee_task(repo_url):
-    prompt = f"Summarize the GitHub repository: {repo_url}"
-    raw_response = agent.run(prompt)
-    formatted_response = agent_response(raw_response, repo_url)
+############################
+# 6) OPTIONAL: ReAct local agent usage
+############################
+def execute_employee_task_single_input(input_str: str) -> str:
+    """
+    Example function to show how you might run a local ReAct agent with the single-argument approach.
+    `input_str` must contain both `repo_url` and `model_name`.
+    """
+    # 1) Create an LLM
+    local_llm = OllamaLLM(model="gemma3:latest")
 
-    if "Provide the final summary" in formatted_response:
-        summary = formatted_response.split("Action Input:")[1].strip()
-        filepath = save_summary_to_file(repo_url, summary)
-        return f"Summary saved to '{filepath}'\n\n{summary}"
-    else:
-        return raw_response
+    # 2) Build an agent that can call the summarizer tool
+    local_agent = initialize_agent(
+        tools=[github_summary_tool],
+        llm=local_llm,
+        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+        verbose=True,
+        handle_parsing_errors=True,
+    )
+
+    # 3) Agent run with the single string
+    raw_response = local_agent.run(input_str)
+
+    # 4) Optionally store the summary to a file if the agent's final answer is indeed the summary
+    # This depends on how your ReAct agent is structured.
+    # If `raw_response` is the summary, you might parse out the repo_url from input_str again:
+    url_match = re.search(r"repo_url=['\"]([^'\"]+)['\"]", input_str)
+    if url_match:
+        repo_url = url_match.group(1)
+        save_summary_to_file(repo_url, raw_response)
+
+    return raw_response
 
 
+############################
+# 7) Local Test
+############################
 if __name__ == "__main__":
-    example_repo = "https://github.com/Tudy00038/marketplace_dApp"
-    summary = execute_employee_task(example_repo)
-    print(summary)
+    test_input = "repo_url='https://github.com/catamaican/gamification' model_name='gemma3:latest'"
+    result = execute_employee_task_single_input(test_input)
+    print("Final agent response:\n", result)

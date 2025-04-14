@@ -39,6 +39,9 @@ class ArgosTranslateTool(BaseTool):
 
         # Check installed languages
         installed_languages = argostranslate.translate.get_installed_languages()
+        import time
+
+        time.sleep(1)  # Adding a delay to ensure the package index is updated
         from_lang_obj = next(
             (lang for lang in installed_languages if lang.code == from_lang_code), None
         )

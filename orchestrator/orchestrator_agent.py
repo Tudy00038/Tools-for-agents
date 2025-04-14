@@ -12,9 +12,9 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
-from tools.agent_selector import select_agent
-from agent_router import route_task
-from langchain_ollama import OllamaLLM
+from .tools.agent_selector import select_agent
+from .agent_router import route_task
+
 
 from llm_config import get_llm
 
@@ -83,10 +83,10 @@ if __name__ == "__main__":
         # "Summarize the README for https://github.com/catamaican/gamification"
         # "Who is Messi?"
         # "What is the capital of France?"
-        "Create a Python function that calculates the Fibonacci sequence. Make the function recursive."
+        # "Create a Python function that calculates the factorial of a number. Make the function recursive."
         # "Summarize the repo."
         # "Python code to search the web."
-        # "Translate 'Hello World' from English to Spanish."
+        "Translate 'I am 19 years old' from English to Spanish."
     )
     response = orchestrate(user_request)
     print(response)

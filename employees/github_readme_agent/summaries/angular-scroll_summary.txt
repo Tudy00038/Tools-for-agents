@@ -1,0 +1,6 @@
+The `duScroll` library provides Angular-based smooth scrolling functionality. Key features include:
+
+*   **Animation Control:** Customization through easing functions and configurable animation duration.
+*   **Directive Usage:** Utilized via directives like `du-smooth-scroll` and `du-scrollspy`, often within Bootstrap-based layouts.
+*   **Event Handling:**  The `duScrollspy:becameActive` event triggers URL updates for smooth navigation.
+*   **Configuration:** Options for adjusting offset, easing, and greedy mode.

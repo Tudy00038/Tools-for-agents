@@ -1,0 +1,1 @@
+The `duScroll` library is an Angular solution for smooth scrolling. It provides customizable options through directives to control animation, easing, offsets, and URL updates for scrollspy features. Key features include smooth scrolling, URL updates, configurable options, and directive-based integration.

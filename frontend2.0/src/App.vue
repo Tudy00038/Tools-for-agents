@@ -1,46 +1,79 @@
 <template>
-  <div class="flex flex-col h-screen bg-gray-100 p-6">
-    <div class="overflow-auto flex-1 space-y-2">
-      <div v-for="msg in messages" :key="msg.id" class="bg-white rounded shadow p-3">
-        <strong>{{ msg.agent }}:</strong> {{ msg.result }}
+  <!-- Outer column layout: chat log → sticky input area -->
+  <div class="flex flex-col h-screen bg-gray-100">
+
+    <!-- CHAT LOG (scrollable) -->
+    <div class="flex-1 overflow-auto p-6 space-y-3">
+      <div
+        v-for="msg in messages"
+        :key="msg.id"
+        class="flex"
+      >
+        <div
+          :class="[
+            msg.agent === 'User'
+              ? 'bg-blue-100 ml-auto'
+              : 'bg-green-100 mr-auto',
+            'max-w-xl p-3 rounded-lg shadow whitespace-pre-wrap'
+          ]"
+        >
+          <strong class="block mb-1">{{ msg.agent }}:</strong>
+          <div v-html="renderMarkdown(msg.result)"></div>
+        </div>
       </div>
     </div>
 
-    <div class="mt-4">
-      <div v-for="agent in agents" :key="agent" class="mb-2">
-        <label>{{ agent }}</label>
-        <select v-model="selectedLLMs[agent]" class="p-2 border rounded w-full">
-          <option v-for="model in availableModels" :key="model" :value="model">{{ model }}</option>
-        </select>
-      </div>
+    <!-- STICKY FOOTER -->
+    <!-- STICKY FOOTER -->
+<div class="sticky bottom-0 w-full bg-white border-t px-6 py-4 space-y-4">
 
-      <input v-model="prompt" @keyup.enter="sendPrompt" class="w-full p-3 rounded border shadow" placeholder="Type your prompt..." />
-    </div>
-  </div>
-
- 
-  <div v-for="msg in messages" :key="msg.id" class="bg-white rounded shadow p-3">
-    <strong>{{ msg.agent }}:</strong>
-    <div v-html="renderMarkdown(msg.result)"></div>
-  </div>
-  <div v-for="msg in messages" :key="msg.id" class="my-2 flex">
-  <!-- If agent is "User", put it on the right. If agent is not "User", put it on the left. -->
-  <div 
-    :class="[
-      msg.agent === 'User' ? 'bg-blue-100 ml-auto' : 'bg-green-100 mr-auto',
-      'max-w-lg','p-3','rounded','shadow'
-    ]"
-  >
-    <strong>{{ msg.agent }}</strong>
-    <div v-html="renderMarkdown(msg.result)"></div>
+<!-- CONDITIONAL: Model selectors shown when toggled -->
+<div v-if="showModelSelectors" class="grid gap-3 md:grid-cols-2">
+  <div v-for="agent in agents" :key="agent" class="flex flex-col">
+    <label class="text-sm font-semibold mb-1">{{ agent }}</label>
+    <select
+      v-model="selectedLLMs[agent]"
+      class="p-1 text-sm border rounded"
+    >
+      <option
+        v-for="model in availableModels"
+        :key="model"
+        :value="model"
+      >
+        {{ model }}
+      </option>
+    </select>
   </div>
 </div>
+
+<!-- INPUT + TOGGLE BUTTON SIDE-BY-SIDE -->
+<div class="flex items-center gap-2">
+  <input
+    v-model="prompt"
+    @keyup.enter="sendPrompt"
+    class="w-full p-2 text-sm border rounded shadow focus:outline-none focus:ring"
+    placeholder="Type your prompt and press Enter…"
+  />
+  <button
+    @click="showModelSelectors = !showModelSelectors"
+    class="px-3 py-2 text-sm border rounded shadow bg-gray-200 hover:bg-gray-300 transition"
+  >
+    ⚙️ Models
+  </button>
+</div>
+</div>
+
+  </div>
 </template>
+
+
 
 <script setup>
 import axios from 'axios';
 import { marked } from 'marked';
 import { ref } from 'vue';
+const showModelSelectors = ref(false)
+
 const renderMarkdown = (text) => {
   return marked(text);
 };
@@ -76,6 +109,8 @@ const sendPrompt = async () => {
 
   // Clear input
   prompt.value = "";
+  showModelSelectors.value = false
+
 
   // 3) Call the backend
   try {
@@ -93,3 +128,17 @@ const sendPrompt = async () => {
 
 
 </script>
+<style>
+/* optional: hide scrollbar on WebKit browsers for cleaner look */
+.flex-1::-webkit-scrollbar {
+  width: 6px;
+}
+.flex-1::-webkit-scrollbar-track {
+  background: transparent;
+}
+.flex-1::-webkit-scrollbar-thumb {
+  background-color: #cbd5e0; /* Tailwind gray‑400 */
+  border-radius: 3px;
+}
+</style>
+

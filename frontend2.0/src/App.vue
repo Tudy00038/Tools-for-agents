@@ -1,40 +1,47 @@
 <template>
   <!-- Outer column layout: chat log → sticky input area -->
-  <div class="flex flex-col h-screen bg-gray-100">
+  <div class="flex flex-col h-screen bg-[#f7f7f8] dark:bg-[#343541] dark:text-gray-100">
 
-    <!-- CHAT LOG (scrollable) -->
-    <div class="flex-1 overflow-auto p-6 space-y-3">
-      <div
-        v-for="msg in messages"
-        :key="msg.id"
-        class="flex"
-      >
-        <div
-          :class="[
-            msg.agent === 'User'
-              ? 'bg-blue-100 ml-auto'
-              : 'bg-green-100 mr-auto',
-            'max-w-xl p-3 rounded-lg shadow whitespace-pre-wrap'
-          ]"
-        >
-          <strong class="block mb-1">{{ msg.agent }}:</strong>
-          <div v-html="renderMarkdown(msg.result)"></div>
-        </div>
-      </div>
+    <!-- CHAT LOG -->
+<div class="flex-1 overflow-auto p-6 space-y-3">
+  <div v-if="messages.length === 0" class="text-center text-gray-400 mt-12">
+    👋 Hi there!  Selecting the models you want to use and ask the agent something.
+  </div>
+
+  <div
+    v-for="msg in messages"
+    :key="msg.id"
+    class="flex"
+  >
+    <div
+    :class="[
+  msg.agent === 'User'
+    ? 'bg-blue-100 text-blue-800 dark:bg-[#3e3f4b] dark:text-[#f7f7f8] ml-auto'
+    : 'bg-green-100 text-green-800 dark:bg-[#444654] dark:text-[#ececf1] mr-auto',
+  'max-w-xl p-3 rounded-lg shadow-sm whitespace-pre-wrap'
+]"
+    >
+      <strong class="block mb-1">{{ msg.agent }}:</strong>
+      <div v-html="renderMarkdown(msg.result)"></div>
     </div>
+  </div>
+</div>
 
     <!-- STICKY FOOTER -->
     <!-- STICKY FOOTER -->
-<div class="sticky bottom-0 w-full bg-white border-t px-6 py-4 space-y-4">
+<div class="sticky bottom-0 w-full bg-[#f7f7f8] dark:bg-[#343541] dark:text-gray-100 border-t px-6 py-4 space-y-4">
 
 <!-- CONDITIONAL: Model selectors shown when toggled -->
 <div v-if="showModelSelectors" class="grid gap-3 md:grid-cols-2">
   <div v-for="agent in agents" :key="agent" class="flex flex-col">
     <label class="text-sm font-semibold mb-1">{{ agent }}</label>
     <select
-      v-model="selectedLLMs[agent]"
-      class="p-1 text-sm border rounded"
-    >
+  v-model="selectedLLMs[agent]"
+  class="p-2 text-sm border rounded
+         bg-white text-black border-gray-300
+         dark:bg-[#40414f] dark:text-[#f7f7f8] dark:border-[#565869]"
+>
+
       <option
         v-for="model in availableModels"
         :key="model"
@@ -49,17 +56,21 @@
 <!-- INPUT + TOGGLE BUTTON SIDE-BY-SIDE -->
 <div class="flex items-center gap-2">
   <input
-    v-model="prompt"
-    @keyup.enter="sendPrompt"
-    class="w-full p-2 text-sm border rounded shadow focus:outline-none focus:ring"
-    placeholder="Type your prompt and press Enter…"
-  />
+  v-model="prompt"
+  @keyup.enter="sendPrompt"
+  class="w-full p-2 text-sm border rounded shadow-sm focus:outline-none focus:ring
+         bg-white text-black border-gray-300
+         dark:bg-[#40414f] dark:border-[#565869] dark:text-[#f7f7f8] dark:placeholder-gray-400"
+  placeholder="Type your prompt and press Enter…"
+/>
   <button
-    @click="showModelSelectors = !showModelSelectors"
-    class="px-3 py-2 text-sm border rounded shadow bg-gray-200 hover:bg-gray-300 transition"
-  >
-    ⚙️ Models
-  </button>
+  @click="showModelSelectors = !showModelSelectors"
+  class="px-4 py-2 text-sm rounded-md shadow-sm transition font-medium
+         bg-gray-200 text-gray-800 hover:bg-gray-300
+         dark:bg-[#444654] dark:text-[#f7f7f8] dark:hover:bg-[#565869]"
+>
+  ⚙️ Models
+</button>
 </div>
 </div>
 

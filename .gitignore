@@ -23,3 +23,5 @@ coverage.xml
 # Environment files
 .env
 .env.local
+*.lib
+*.dll

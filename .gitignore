@@ -6,3 +6,20 @@ __pycache__/
 .vscode/
 .argos_env/
 .summaries/
+# Node.js dependencies
+node_modules/
+
+# Local SQLite database (if temporary)
+*.db
+
+# Log files
+*.log
+
+# Coverage or test output
+.coverage
+htmlcov/
+coverage.xml
+
+# Environment files
+.env
+.env.local
